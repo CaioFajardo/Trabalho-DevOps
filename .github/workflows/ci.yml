@@ -1,6 +1,5 @@
 name: CI - Validação de Código (PR)
 
-# Dispara APENAS quando houver um Pull Request direcionado para a branch main
 on:
   pull_request:
     branches:
@@ -10,17 +9,14 @@ jobs:
   validar-projeto:
     runs-on: ubuntu-latest
 
-    # Etapa 5: Matrix Strategy rodando simultaneamente em Node 18 e 20
     strategy:
       matrix:
         node-version: [18, 20]
 
     steps:
-      # 1. Baixa o código do repositório para o servidor (Runner)
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      # 2. Etapa 1: Verifica se index.html existe na raiz ANTES de qualquer outra coisa
       - name: Verificar existência do index.html na raiz
         run: |
           if [ ! -f "index.html" ]; then
@@ -29,22 +25,18 @@ jobs:
           fi
           echo "OK: index.html encontrado."
 
-      # 3. Configura o Node.js usando a versão da Matrix (18 ou 20)
       - name: Configurar Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      # 4. Instala as dependências (htmlhint e linkinator)
       - name: Instalar dependências
         run: npm ci
 
-      # 5. Etapa 1: Executa o Linter para validar os padrões do HTML
       - name: Executar HTML Linter
         run: npx htmlhint index.html
 
-      # 6. Etapa 1: Bloqueia qualquer arquivo individual maior que 500KB (ignorando node_modules e .git)
       - name: Verificar limite de tamanho de arquivos (Max 500KB)
         run: |
           ARQUIVOS_GRANDES=$(find . -type f -not -path "./node_modules/*" -not -path "./.git/*" -size +500k)
@@ -55,15 +47,13 @@ jobs:
           fi
           echo "OK: Todos os arquivos estão dentro do limite de 500KB."
 
-      # 7. Etapa 1: Varredura de texto por TODO, FIXME, senha e password
       - name: Varrer código em busca de comentários pendentes ou termos sensíveis
         run: |
-          if grep -rnIiE "TODO|FIXME|senha|password" . --exclude-dir={node_modules,.git,.github} --exclude={package-lock.json,package.json}; then
+          if grep -rnIiE "TODO|FIXME|senha|password" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.github --exclude=package-lock.json --exclude=package.json; then
             echo "ERRO: Foram encontrados termos proibidos (TODO, FIXME, senha ou password) no código!"
             exit 1
           fi
           echo "OK: Nenhum termo proibido encontrado."
 
-      # 8. Etapa 1: Verificação automatizada de links e imagens
       - name: Validar links e caminhos de imagens
-        run: npx linkinator index.html
+        run: npx linkinator index.html --retry

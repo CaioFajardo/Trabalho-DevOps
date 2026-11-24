@@ -11,6 +11,6 @@
   "license": "ISC",
   "devDependencies": {
     "htmlhint": "^1.9.2",
-    "linkinator": "^8.1.0"
+    "linkinator": "^6.3.0"
   }
 }
