@@ -1,19 +1,16 @@
 name: CD - Deploy no GitHub Pages
 
-# Etapa 2: Dispara sempre que houver código novo aprovado na branch main
 on:
   push:
     branches:
       - main
 
-# Etapa 2: Permissões necessárias para publicar no GitHub Pages e abrir Issue em caso de falha
 permissions:
   contents: read
   pages: write
   id-token: write
   issues: write
 
-# Garante que apenas um deploy rode por vez
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -41,7 +38,6 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      # Etapa 4: Notificação automática caso o deploy falhe
       - name: Notificar equipe em caso de falha no Deploy
         if: failure()
         uses: actions/github-script@v7
